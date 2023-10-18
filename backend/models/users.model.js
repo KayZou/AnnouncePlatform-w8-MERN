@@ -6,7 +6,7 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: false, unique: true },
   password: { type: String, minlength: 6, required: false },
   image: { type: String },
-  jobs: [{ type: mongoose.Types.ObjectId, ref: "Jobs", required: false }],
+  jobs: [{ type: mongoose.Types.ObjectId, ref: "Job", required: false }],
 });
 
 UserSchema.plugin(uniqueValidator);

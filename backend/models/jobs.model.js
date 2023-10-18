@@ -8,4 +8,4 @@ const JobsSchema = new mongoose.Schema({
   creator: { type: mongoose.Types.ObjectId, required: false, ref: "User" },
 });
 JobsSchema.plugin(uniqueValidator);
-module.exports = mongoose.model("Place", JobsSchema);
+module.exports = mongoose.model("Job", JobsSchema);

@@ -82,8 +82,24 @@ const allUsers = async (req, res, next) => {
     next(error);
   }
 };
+
+const getUserById = async (req, res, next) => {
+  const uid = req.params.uid;
+  try {
+    const user = await User.findById(uid);
+    res.json({
+      status: "success",
+      data: user.toObject({ getters: true }),
+    });
+  } catch (err) {
+    const error = new HttpErrors("Couldn't find this place!", 404);
+    return next(error);
+  }
+};
+
 module.exports = {
   signUp,
   loginIn,
   allUsers,
+  getUserById,
 };
