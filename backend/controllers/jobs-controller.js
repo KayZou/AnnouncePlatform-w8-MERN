@@ -102,8 +102,56 @@ const getJobsByUserId = async (req, res, next) => {
   }
 };
 
+const deleteJob = async (req, res, next) => {
+  const jid = req.params.jid;
+  let job2delete;
+
+  try {
+    job2delete = await Job.findById(jid).populate("creator");
+
+    if (!job2delete) {
+      const error = new HttpErrors("Couldn't find this job!", 404);
+      return next(error);
+    }
+  } catch (err) {
+    console.error(err.message);
+    const error = new HttpErrors("Couldn't delete this job!", 500);
+    return next(error);
+  }
+
+  try {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    await job2delete.deleteOne({ session });
+    job2delete.creator.jobs.pull(jid);
+    await job2delete.creator.save({ session });
+    await session.commitTransaction();
+    session.endSession();
+    res.status(204).end();
+  } catch (err) {
+    console.error(err.message);
+    const error = new HttpErrors("Something went wrong!", 500);
+    return next(error);
+  }
+};
+
+const getJobById = async (req, res, next) => {
+  const jid = req.params.jid;
+  try {
+    const job = await Job.findById(jid);
+    res.json({
+      status: "success",
+      data: job.toObject({ getters: true }),
+    });
+  } catch (err) {
+    const error = new HttpErrors("Couldn't find this place!", 404);
+    return next(error);
+  }
+};
 module.exports = {
   getAllJobs,
   createJob,
   getJobsByUserId,
+  deleteJob,
+  getJobById,
 };

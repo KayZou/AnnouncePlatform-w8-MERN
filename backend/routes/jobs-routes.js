@@ -15,6 +15,11 @@ router.post(
 );
 
 router
+  .route("/:jid")
+  .delete(logger.verifyToken, jobsController.deleteJob)
+  .get(jobsController.getJobById);
+
+router
   .route("/user/:uid")
   .get(logger.verifyToken, jobsController.getJobsByUserId);
 

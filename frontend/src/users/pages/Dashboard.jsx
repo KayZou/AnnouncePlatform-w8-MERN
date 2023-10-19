@@ -52,7 +52,7 @@ const Dashboard = () => {
         <>
           <h2>Dashboard of: {userData.isUser.username}</h2>
           <JobForm onAddJob={onAddJob} />
-          <JobList jobs={jobs} onAddJob={onAddJob} />
+          <JobList jobs={jobs} onAddJob={onAddJob} token={token}/>
         </>
       ) : (
         <Button href="/authenticate" variant="primary">
