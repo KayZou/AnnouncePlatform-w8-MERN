@@ -148,10 +148,34 @@ const getJobById = async (req, res, next) => {
     return next(error);
   }
 };
+
+const updateJob = async (req, res, next) => {
+  const { title, description } = req.body;
+  const jid = req.params.jid;
+  try {
+    const job2update = await Job.findByIdAndUpdate(
+      jid,
+      {
+        title,
+        description,
+      },
+      { new: true },
+    );
+    res.status(201).json({
+      status: "success",
+      data: job2update.toObject({ getters: true }),
+    });
+  } catch (err) {
+    console.log(err.message);
+    const error = new HttpErrors("Couldn't update this job!", 404);
+    return next(error);
+  }
+};
 module.exports = {
   getAllJobs,
   createJob,
   getJobsByUserId,
   deleteJob,
   getJobById,
+  updateJob,
 };

@@ -92,7 +92,7 @@ const getUserById = async (req, res, next) => {
       data: user.toObject({ getters: true }),
     });
   } catch (err) {
-    const error = new HttpErrors("Couldn't find this place!", 404);
+    const error = new HttpErrors("Couldn't find this job!", 404);
     return next(error);
   }
 };

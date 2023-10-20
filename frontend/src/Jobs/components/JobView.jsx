@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Card, Row, Col } from 'react-bootstrap';
-import { BsFillBriefcaseFill } from 'react-icons/bs';
+import { Container, Card } from 'react-bootstrap';
 import axios from 'axios';
 
 const JobView = () => {
@@ -20,7 +19,15 @@ const JobView = () => {
       }
     };
 
+    // Execute the cleanup function
+    const source = axios.CancelToken.source();
+
     fetchJobDetails();
+
+    // Return the cleanup function
+    return () => {
+      source.cancel('Operation canceled by cleanup');
+    };
   }, [jid]);
 
   return (

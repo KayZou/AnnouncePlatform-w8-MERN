@@ -12,7 +12,7 @@ const Home = () => {
         Announce Platform, a web platform to create and find jobs.
         </p>
         <p className="lead">
-          <Link to="/authenticate"> {/* Replace "/authenticate" with your actual authentication route */}
+          <Link to="/authenticate">
             <Button variant="primary">
               Get Started <FaArrowRight className="ml-2" />
             </Button>

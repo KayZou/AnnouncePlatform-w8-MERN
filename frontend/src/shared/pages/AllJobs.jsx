@@ -2,16 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { Container, Card, Row, Col, Button } from 'react-bootstrap';
 import { BsFillBriefcaseFill } from 'react-icons/bs';
 import { FaArrowRight } from 'react-icons/fa';
-import {Link } from "react-router-dom"
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 
-const JobList = () => {
+const AllJobs = () => {
   const [jobs, setJobs] = useState([]);
 
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        // Fetch jobs from the API
+        // Fetch all jobs from the API
         const response = await axios.get('http://localhost:4000/api/jobs/');
         setJobs(response.data.data);
       } catch (error) {
@@ -22,36 +22,9 @@ const JobList = () => {
     fetchJobs();
   }, []);
 
-  const fetchCreatorName = async (creatorId) => {
-    try {
-      // Fetch user data for the given creator ID
-      const response = await axios.get(`http://localhost:4000/api/users/${creatorId}`);
-      return response.data.data.username || 'Unknown';
-    } catch (error) {
-      console.error('Error fetching creator data:', error);
-      return 'Unknown';
-    }
-  };
-
-  useEffect(() => {
-    const updateJobsWithCreatorNames = async () => {
-      const updatedJobs = await Promise.all(
-        jobs.map(async (job) => {
-          const creatorName = await fetchCreatorName(job.creator);
-          return { ...job, creatorName };
-        })
-      );
-      setJobs(updatedJobs);
-    };
-
-    if (jobs.length > 0) {
-      updateJobsWithCreatorNames();
-    }
-  }, [jobs, setJobs, fetchCreatorName]);
-
   return (
     <Container>
-      <h2>Job Listings</h2>
+      <h2>All Job Listings</h2>
       <Row>
         {jobs.length > 0 ? (
           jobs.map((job) => (
@@ -63,14 +36,14 @@ const JobList = () => {
                   <p>
                     <BsFillBriefcaseFill /> {job.company}
                   </p>
-                  <p>Created by: {job.creatorName}</p>
+                  <p>Created by: {job.creatorName || 'Unknown'}</p>
                 </Card.Body>
               </Card>
-              <Link to="/dashboard"> 
-            <Button variant="primary">
-              Dashboard <FaArrowRight className="ml-2" />
-            </Button>
-          </Link>
+              <Link to="/dashboard">
+                <Button variant="primary">
+                  Dashboard <FaArrowRight className="ml-2" />
+                </Button>
+              </Link>
             </Col>
           ))
         ) : (
@@ -83,4 +56,4 @@ const JobList = () => {
   );
 };
 
-export default JobList;
+export default AllJobs;

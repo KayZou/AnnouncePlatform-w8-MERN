@@ -7,12 +7,19 @@ import axios from "axios";
 const JobList = ({ jobs, token }) => {
   const [creatorNames, setCreatorNames] = useState({});
   const [renderKey, setRenderKey] = useState(0); // State variable to trigger re-render
+  const [editingJobId, setEditingJobId] = useState(null); // Store the ID of the job being edited
+  const [editFormData, setEditFormData] = useState({
+    title: "",
+    description: "",
+  });
 
   const reRender = useCallback(() => {
     setRenderKey((prevKey) => prevKey + 1);
   }, []);
 
   useEffect(() => {
+    let unmounted = false; // Flag to track unmounting
+
     const fetchCreatorName = async (creatorId) => {
       try {
         const response = await axios.get(
@@ -23,10 +30,17 @@ const JobList = ({ jobs, token }) => {
             },
           }
         );
-        return response.data.data.username || "Unknown";
+
+        if (!unmounted) {
+          setCreatorNames((prevNames) => ({
+            ...prevNames,
+            [creatorId]: response.data.data.username || "Unknown",
+          }));
+        }
       } catch (error) {
-        console.error("Error fetching creator data:", error);
-        return "Unknown";
+        if (!unmounted) {
+          console.error("Error fetching creator data:", error);
+        }
       }
     };
 
@@ -34,37 +48,71 @@ const JobList = ({ jobs, token }) => {
       const names = {};
 
       for (const job of jobs) {
-        if (!creatorNames[job.creator]) {
+        if (!unmounted && !creatorNames[job.creator]) {
           names[job.creator] = await fetchCreatorName(job.creator);
         }
       }
 
-      setCreatorNames((prevNames) => ({ ...prevNames, ...names }));
+      if (!unmounted) {
+        setCreatorNames((prevNames) => ({ ...prevNames, ...names }));
+      }
     };
 
     fetchAllCreatorNames();
+
+    return () => {
+      unmounted = true;
+    };
   }, [jobs, token, reRender]);
 
   const deleteJob = async (jobId) => {
     try {
-      // Send a DELETE request to the API to delete the job
       await axios.delete(`http://localhost:4000/api/jobs/${jobId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      // Trigger re-render by updating the renderKey
       reRender();
     } catch (error) {
       console.error("Error deleting job:", error);
     }
   };
 
+  const handleEditJob = (jobId, title, description) => {
+    setEditingJobId(jobId);
+    setEditFormData({ title, description });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingJobId(null);
+    setEditFormData({ title: "", description: "" });
+  };
+
+  const handleUpdateJob = async (jobId) => {
+    try {
+      await axios.patch(
+        `http://localhost:4000/api/jobs/${jobId}`,
+        {
+          title: editFormData.title,
+          description: editFormData.description,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setEditingJobId(null);
+      setEditFormData({ title: "", description: "" });
+      reRender();
+    } catch (error) {
+      console.error("Error updating job:", error);
+    }
+  };
+
   return (
     <Container key={renderKey}>
-      {" "}
-      {/* Add a key to the Container to trigger re-render */}
       <h2>Job Listings</h2>
       <Row>
         {jobs.length > 0 ? (
@@ -73,15 +121,59 @@ const JobList = ({ jobs, token }) => {
               <Card className="mb-4">
                 <Card.Body>
                   <Link to={`/jobs/${job.id}`}>
-                    <Card.Title>{job.title}</Card.Title>
+                    <Card.Title>
+                      {editingJobId === job._id ? (
+                        <input
+                          type="text"
+                          name="title"
+                          value={editFormData.title}
+                          onChange={(e) =>
+                            setEditFormData({
+                              ...editFormData,
+                              title: e.target.value,
+                            })
+                          }
+                        />
+                      ) : (
+                        job.title
+                      )}
+                    </Card.Title>
                   </Link>
-
-                  <Card.Text>{job.description}</Card.Text>
+                  <Card.Text>
+                    {editingJobId === job._id ? (
+                      <textarea
+                        name="description"
+                        value={editFormData.description}
+                        onChange={(e) =>
+                          setEditFormData({
+                            ...editFormData,
+                            description: e.target.value,
+                          })
+                        }
+                      />
+                    ) : (
+                      job.description
+                    )}
+                  </Card.Text>
                   <p>Created by: {creatorNames[job.creator] || "Unknown"}</p>
-                  <Button
-                    variant="danger"
-                    onClick={() => deleteJob(job._id)} // Call the deleteJob function with the job ID
-                  >
+                  {editingJobId === job._id ? (
+                    <Button
+                      variant="success"
+                      onClick={() => handleUpdateJob(job._id)}
+                    >
+                      Save
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="warning"
+                      onClick={() =>
+                        handleEditJob(job._id, job.title, job.description)
+                      }
+                    >
+                      Edit
+                    </Button>
+                  )}
+                  <Button variant="danger" onClick={() => deleteJob(job._id)}>
                     <BsTrash /> Delete
                   </Button>
                 </Card.Body>
